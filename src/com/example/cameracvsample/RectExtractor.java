@@ -6,26 +6,38 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 
 public class RectExtractor implements CameraFrameListener
 {
-	Mat dispImage = null;
+	Mat rgba = null;
+	Mat gray = null;
 	Mat canny = null;
 	Mat work = null;
-	
+	Mat hsv = null;
+
 	@Override
-	public Mat onCameraFrameReady(CvCameraViewFrame frame)
+	public Mat onCameraFrameReady(Mat _rgba)
 	{
-		if(dispImage==null) dispImage = new Mat();
+		if(rgba==null) rgba = new Mat();
+		if(gray==null) gray = new Mat(); 
 		if(canny==null) canny = new Mat();
 		if(work==null) work = new Mat();
+		if(hsv==null) hsv = new Mat();
 		
-		dispImage = frame.rgba();
+		rgba = _rgba;
+		Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
+		Imgproc.Canny(gray, canny, 80, 100);
 		
-		
-		// Imgproc.cvtColor(rangeImage, rangeImage, Imgproc.COLOR_RGB2HSV); //Ëâ≤Á©∫Èñì„ÇíRGB‚ÜíHSV„Å´Â§âÊèõ
-		// Core.inRange(rangeImage , new Scalar(0, 60, 80), new Scalar(25, 255, 255), rangeImage );//ËÇåËâ≤ÊäΩÂá∫
+		Imgproc.cvtColor(rgba, hsv, Imgproc.COLOR_RGB2HSV);
+		// Core.inRange(hsv , new Scalar(0, 60, 80), new Scalar(25, 255, 255), hsv );
+		Core.inRange(hsv , new Scalar(0, 0, 0), new Scalar(255, 50, 255), hsv );
+		// HSV
+		// H : Hue (kind of color) êFëä
+		// S : Saturation 0-100(%) ç ìx
+ 		// V : Value 0-100(%) brightness ñæìx
 
-		Imgproc.Canny(frame.gray(), work, 80, 100);
+/*
 		Mat lines = new Mat();
-		Imgproc.HoughLines(work, lines,1,Math.PI/180,200,0,0);
+		Mat tmp = new Mat();
+		tmp = hsv.clone();
+		Imgproc.HoughLines(tmp, lines,1,Math.PI/180,200,0,0);
 		
 		float[] data = new float[2];
 		for (int i=0; i<lines.cols(); ++i) {
@@ -42,15 +54,16 @@ public class RectExtractor implements CameraFrameListener
 			pt1.y = Math.round(y0 + 1000*(a));
 			pt2.x = Math.round(x0 - 1000*(-b));
 			pt2.y = Math.round(y0 - 1000*(a));
-			Core.line(dispImage, pt1, pt2, new Scalar(0, 0, 255), 3);
+			// Core.line(rgba, pt1, pt2, new Scalar(0, 0, 255), 3);
 		}
-		
+	*/	
 		/* Contours
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Imgproc.Canny(frame.gray(), canny, 80, 100);
 		Mat hierarchy = Mat.zeros(new Size(5,5), CvType.CV_8UC1);
-		Imgproc.findContours(canny,  contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_TC89_L1);
-		Imgproc.drawContours(dispImage, contours, -1, new Scalar(0,0,255), 1); 
+		// input image for find contours must be "1-channel".  
+		// Imgproc.findContours(hsv,  contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_TC89_L1);
+		Imgproc.findContours(hsv,  contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+		Imgproc.drawContours(rgba, contours, -1, new Scalar(0,0,255), 1); 
 		
 		int i=0;
         for(i=0;i<contours.size();i++)
@@ -61,9 +74,11 @@ public class RectExtractor implements CameraFrameListener
             Rect box=bbox.boundingRect();
 			
 			if(box.width < 100 || box.height < 100) continue;
+			if(box.width > 500 || box.height > 500) continue;
+			if(box.height / box.width > 2 ) continue;
 			
-            Core.rectangle(dispImage,box.tl(),box.br(),new Scalar(0,0,255),2);
+            Core.rectangle(rgba,box.tl(),box.br(),new Scalar(0,0,255),2);
         }*/
-		return dispImage;
+		return hsv;
 	}
 }
