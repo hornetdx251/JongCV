@@ -28,19 +28,23 @@ import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.android.*;
 
-public class MainActivity extends Activity implements CvCameraViewListener2{
+
+import org.opencv.core.*;
+import java.util.*;
+public class MainActivity extends Activity 
+	implements CvCameraViewListener2{
 	
 	// OpenCVの提供するカメラを扱う2つのViewである、JavaCameraView or NativeCameraViewのスーパークラス
 	private CameraBridgeViewBase cameraView = null;
-	// private Mat outputFrame = null;
 	
 	// for 画像認識
+	private List<CameraFrameListener> listeners = null;
+	
 	private CascadeClassifier detector = null;
 	private File cascadeFile = null;
-	private Mat rgbaFrame = null;
-	private Mat grayFrame = null;
 	private float relativeObjSize = 0.4f;
 	private int absoluteObjSize = 0;
+	private Mat rgbaFrame = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +63,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 		// OpenCVのカメラ管理クラスのリスナーを自身で登録しておく(this implements CvCameraViewListener)
 		cameraView.setCvCameraViewListener(this);
 		
-		
 		LinearLayout layout =new LinearLayout(this);
 		layout.setOrientation(LinearLayout.HORIZONTAL);
 		layout.addView(cameraView,
@@ -69,6 +72,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 		setContentView(layout);
 		// setContentView(R.layout.activity_main);
 		
+		listeners = new ArrayList<CameraFrameListener>();
+		listeners.add(new RectExtractor());
 	}
 
 	// アプリサイズ節約の為、OpenCVライブラリは外部モジュールからインストールされる
@@ -86,7 +91,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 		public void onManagerConnected(int status) {
 			switch(status){
 			case LoaderCallbackInterface.SUCCESS:
-
+				/*
 				// リソースからカスケードファイルを読み込む
 				try {
 					InputStream is = getResources().getAssets().open("lbpcascade_frontalface.xml");
@@ -108,7 +113,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+				*/
 				// 読み込みに成功した場合、カメラプレビューを開始する。
 				cameraView.enableView();
 				break;
@@ -145,7 +150,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 	public void onCameraViewStarted(int width, int height) {
 		// rgbaFrame = new Mat(height,width,CvType.CV_8UC(1));
 		rgbaFrame = new Mat();
-		grayFrame = new Mat();
 		
 	}
 
@@ -153,14 +157,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 	@Override
 	public void onCameraViewStopped() {
 		rgbaFrame.release();
-		grayFrame.release();
 	}
 
 	// フレームをキャプチャする毎に呼ばれる(**fps)
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		rgbaFrame = inputFrame.rgba();
-		grayFrame = inputFrame.gray();
+		Mat dispImage = null;
+		
+		for(CameraFrameListener listener : listeners){
+			dispImage = listener.onCameraFrameReady(inputFrame);
+		}
+		
 		
 		/* for debugging.
 
@@ -187,7 +195,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2{
 		// bit反転する
 		// Core.bitwise_not(outputFrame, outputFrame);
 		*/
-		return rgbaFrame;
+		return dispImage;
 	}
 
 }
