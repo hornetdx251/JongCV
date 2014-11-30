@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.*;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -24,9 +26,11 @@ public class MainActivity extends Activity
 	implements CvCameraViewListener2{
 	
 	private CameraBridgeViewBase cameraView = null;	
-	private List<CameraFrameListener> listeners = null;
+	// private List<CameraFrameListener> listeners = null;
+	RectExtractor listener = null;
 	private Mat rgbaFrame = null;
-	private Mat debugImage = null;
+	// private Mat debugImage = null;
+	TextView txt1 = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,7 @@ public class MainActivity extends Activity
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
+		// Root
 		FrameLayout frameLayout = new FrameLayout(this);
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
 			FrameLayout.LayoutParams.MATCH_PARENT,
@@ -43,45 +48,77 @@ public class MainActivity extends Activity
 		params.gravity = Gravity.RIGHT;
 		frameLayout.setLayoutParams(params);
 		
-		// initialization for camera view.
-		cameraView  = new JavaCameraView(this,0);		
-		cameraView.setCvCameraViewListener(this);
-		LinearLayout cameraLayout =new LinearLayout(this);
-		cameraLayout.setOrientation(LinearLayout.HORIZONTAL);
-		cameraLayout.addView(cameraView,
-					   new LinearLayout.LayoutParams(
-						   LinearLayout.LayoutParams.MATCH_PARENT,
-						   LinearLayout.LayoutParams.MATCH_PARENT));
-		// add to frame layout
+			// Camera
+			cameraView  = new JavaCameraView(this,0);		
+			cameraView.setCvCameraViewListener(this);
+			LinearLayout cameraLayout =new LinearLayout(this);
+			cameraLayout.setOrientation(LinearLayout.HORIZONTAL);
+			cameraLayout.addView(cameraView,
+						   new LinearLayout.LayoutParams(
+							   LinearLayout.LayoutParams.MATCH_PARENT,
+							   LinearLayout.LayoutParams.MATCH_PARENT));
+
+			// UI
+			LinearLayout uiLayout = new LinearLayout(this);
+			LinearLayout.LayoutParams uiLayoutParams = new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT,
+					LinearLayout.LayoutParams.MATCH_PARENT);
+			uiLayoutParams.gravity = Gravity.RIGHT | Gravity.BOTTOM;
+			uiLayoutParams.setMargins(50, 50, 50, 50);
+			uiLayout.setLayoutParams(uiLayoutParams);
+			uiLayout.setOrientation(LinearLayout.VERTICAL);
+			
+				// UI contens
+				SeekBar seekbar = new SeekBar(this);
+				seekbar.setMax(100);
+				seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+					@Override
+					public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+					}
+
+					@Override
+					public void onStartTrackingTouch(SeekBar seekBar) {
+					}
+
+					@Override
+					public void onStopTrackingTouch(SeekBar seekBar) {
+						listener.seek = seekBar.getProgress();
+						if(txt1!=null) txt1.setText(seekBar.getProgress() + "");
+					}
+					
+				});
+				seekbar.setProgress(0);
+				
+				Button btn = new Button(this);
+				btn.setText("hogehoge");
+				
+				txt1 = new TextView(this);
+				txt1.setText(seekbar.getProgress() + "");
+			
+			uiLayout.addView(btn, new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.WRAP_CONTENT,
+					LinearLayout.LayoutParams.WRAP_CONTENT));
+			uiLayout.addView(seekbar, new LinearLayout.LayoutParams(
+					   LinearLayout.LayoutParams.MATCH_PARENT,
+					   LinearLayout.LayoutParams.WRAP_CONTENT));
+			uiLayout.addView(txt1, new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.WRAP_CONTENT,
+					LinearLayout.LayoutParams.WRAP_CONTENT));
+			
 		frameLayout.addView(cameraLayout,
 				new LinearLayout.LayoutParams(
 						   LinearLayout.LayoutParams.MATCH_PARENT,
 						   LinearLayout.LayoutParams.MATCH_PARENT));
-		
-		Button btn = new Button(this);
-		btn.setText("hogehoge");
-		LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
-			LinearLayout.LayoutParams.WRAP_CONTENT,
-			LinearLayout.LayoutParams.WRAP_CONTENT);
-		frameLayout.addView(btn,p);
-		
-		/*
-		LinearLayout uiLayout =new LinearLayout(this);	
-		Button btn = (Button)findViewById(R.id.button1);
-		uiLayout.addView(btn);
-		frameLayout.addView(uiLayout,
-				new LinearLayout.LayoutParams(
-						   LinearLayout.LayoutParams.MATCH_PARENT,
-						   LinearLayout.LayoutParams.MATCH_PARENT));	
-		*/
+		frameLayout.addView(uiLayout);
 		
 		setContentView(frameLayout);
 		
-
-		
 		// initialization for camera frame listener.
-		listeners = new ArrayList<CameraFrameListener>();
-		listeners.add(new RectExtractor());
+		// listeners = new ArrayList<CameraFrameListener>();
+		// listeners.add(new RectExtractor());
+		listener = new RectExtractor();
+		listener.seek = seekbar.getProgress();
 	}
 
 	@Override
@@ -148,9 +185,11 @@ public class MainActivity extends Activity
 		rgbaFrame = inputFrame.rgba();
 		Mat dispImage = null;
 		
+		/*
 		for(CameraFrameListener listener : listeners){
 			dispImage = listener.onCameraFrameReady(rgbaFrame);
-		}
+		}*/
+		dispImage = listener.onCameraFrameReady(rgbaFrame);
 		
 		return dispImage;
 	}
