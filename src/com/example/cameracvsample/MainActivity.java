@@ -17,6 +17,8 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.android.*;
+import android.widget.RelativeLayout.*;
+import android.view.*;
 
 public class MainActivity extends Activity 
 	implements CvCameraViewListener2{
@@ -35,9 +37,11 @@ public class MainActivity extends Activity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		FrameLayout frameLayout = new FrameLayout(this);
-		frameLayout.setLayoutParams( new FrameLayout.LayoutParams(
-						   FrameLayout.LayoutParams.MATCH_PARENT,
-						   FrameLayout.LayoutParams.MATCH_PARENT));
+		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+			FrameLayout.LayoutParams.MATCH_PARENT,
+			FrameLayout.LayoutParams.MATCH_PARENT);
+		params.gravity = Gravity.RIGHT;
+		frameLayout.setLayoutParams(params);
 		
 		// initialization for camera view.
 		cameraView  = new JavaCameraView(this,0);		
@@ -53,6 +57,13 @@ public class MainActivity extends Activity
 				new LinearLayout.LayoutParams(
 						   LinearLayout.LayoutParams.MATCH_PARENT,
 						   LinearLayout.LayoutParams.MATCH_PARENT));
+		
+		Button btn = new Button(this);
+		btn.setText("hogehoge");
+		LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+			LinearLayout.LayoutParams.WRAP_CONTENT,
+			LinearLayout.LayoutParams.WRAP_CONTENT);
+		frameLayout.addView(btn,p);
 		
 		/*
 		LinearLayout uiLayout =new LinearLayout(this);	
