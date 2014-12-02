@@ -27,7 +27,7 @@ public class MainActivity extends Activity
 	
 	private CameraBridgeViewBase cameraView = null;	
 	// private List<CameraFrameListener> listeners = null;
-	RectExtractor listener = null;
+	RectExtractor2 listener = null;
 	private Mat rgbaFrame = null;
 	// private Mat debugImage = null;
 	TextView txt1 = null;
@@ -83,7 +83,7 @@ public class MainActivity extends Activity
 
 					@Override
 					public void onStopTrackingTouch(SeekBar seekBar) {
-						listener.seek = seekBar.getProgress();
+						// listener.seek = seekBar.getProgress();
 						if(txt1!=null) txt1.setText(seekBar.getProgress() + "");
 					}
 					
@@ -117,8 +117,8 @@ public class MainActivity extends Activity
 		// initialization for camera frame listener.
 		// listeners = new ArrayList<CameraFrameListener>();
 		// listeners.add(new RectExtractor());
-		listener = new RectExtractor();
-		listener.seek = seekbar.getProgress();
+		listener = new RectExtractor2();
+		// listener.seek = seekbar.getProgress();
 	}
 
 	@Override
@@ -190,6 +190,7 @@ public class MainActivity extends Activity
 			dispImage = listener.onCameraFrameReady(rgbaFrame);
 		}*/
 		dispImage = listener.onCameraFrameReady(rgbaFrame);
+		// dispImage = rgbaFrame;
 		
 		return dispImage;
 	}
